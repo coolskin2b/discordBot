@@ -183,3 +183,56 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 client.login(token);
+
+
+  // // every 5 buttons of listeBosss in row create a new row in row_button_list
+
+  // let row_button_list = [];
+  // let row2 = new MessageActionRow();
+  // let row3 = new MessageActionRow();
+  // let row4 = new MessageActionRow();
+  // let row5 = new MessageActionRow();
+  // let i = 0;
+  // for (let i = 0; i < 5; i++) {
+    // if ( i != 0 && i % 5 == 0) {
+    //   row_button_list.push(row);
+    //   row = new MessageActionRow();
+    // }
+    // // create button
+    // let button = new MessageButton();
+    // button.setCustomId(listeBosss[i]._id.toString());
+    // button.setLabel(listeBosss[i].boss.name);
+    // button.setStyle(3)
+    // // add button to row
+    // // row.addComponents(button);
+    // row.addComponents(
+    //   new MessageButton()
+    //     .setCustomId(listeBosss[i]._id.toString())
+    //     .setLabel(listeBosss[i].boss.name)
+    //     .setStyle(3)
+    // );
+  //   let button1 = new MessageButton();
+  //   button1.setCustomId(listeBosss[i]._id.toString())
+  //   button1.setLabel(listeBosss[i].boss.name);
+  //   button1.setStyle(3)
+  //   // push to row_button_list
+  //   row_button_list.push(button1);
+  // }
+
+  // // create row of buttons
+  // let row = new MessageActionRow().addComponents(...row_button_list);
+  // const row1 = new MessageActionRow()
+  //   .addComponents(
+  //     new MessageButton()
+  //       .setCustomId("spotted")
+  //       .setLabel("   Il est vivant!   ")
+  //       .setStyle(3)
+  //   )
+  //   // add one more button
+  //   .addComponents(
+  //     new MessageButton()
+  //       .setCustomId("dead")
+  //       .setLabel("   Mort...Il est mort..   ")
+  //       .setStyle(1)
+  //   );
+  // return row1;

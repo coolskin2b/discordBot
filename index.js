@@ -71,12 +71,17 @@ client.on("interactionCreate", async (interaction) => {
     });
   } else if (commandName === "bosse-update") {
     miniBoss(interaction);
+    console.log('JE SUIS UNE INTERACTION????')
   } else {
     await interaction.reply(`Un petit probleme de dev`);
   }
+
+  // INTERACTION DES BOUTONS :
   client.on("interactionCreate", (interaction) => {
     if (!interaction.isButton()) return;
     console.log(interaction);
+    console.log('JE SUIS UNE INTERACTION????22222222222')
+    miniBoss(interaction);
   });
 });
 
