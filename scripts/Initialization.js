@@ -11,8 +11,6 @@ async function initializeBossList() {
     console.log("Creating table");
     // console log to check if table is created
     const bossList = await schemaBoss.find();
-    console.log(bossList);
-
     // take array of object : bossDatas and register it in the table
     for (const boss of OutlandsBossData) {
       const newBoss = new schemaBoss({
@@ -31,7 +29,6 @@ async function initializeBossList() {
     console.log("Table created");
   } else {
     console.log("Table already exist");
-    console.log(bossList);
   }
 }
 
@@ -49,10 +46,8 @@ async function initializeSpawnBossList() {
       newSpawnBoss.save();
     }
     console.log("Table created");
-    console.log(spawnBossList);
   } else {
     console.log("Table already exist");
-    console.log(spawnBossList);
   }
 }
 

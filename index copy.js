@@ -41,8 +41,8 @@ client.on("ready", async () => {
   });
   console.log("Connected to MongoDB");
   setTimeout(async () => {
-    console.log("  OutlandsBossData");
-    console.log(OutlandsBossData);
+    // console.log("  OutlandsBossData");
+    // console.log(OutlandsBossData);
 
     // create table if not exist
     const bossList = await schemaBoss.find();
@@ -50,7 +50,7 @@ client.on("ready", async () => {
       console.log("Creating table");
       // console log to check if table is created
       const bossList = await schemaBoss.find();
-      console.log(bossList);
+      // console.log(bossList);
 
       // take array of object : bossDatas and register it in the table
       /*const BossSchema = new Schema({
@@ -107,8 +107,8 @@ client.on("ready", async () => {
         newBoss.save();
       }
     } else {
-      console.log("Table already exist");
-      console.log(bossList);
+      // console.log("Table already exist");
+      // console.log(bossList);
     }
   }, 5000);
 });
