@@ -7,6 +7,11 @@ const BossSchema = new Schema({
         type:String,
         required:true
     },
+    //boss Type  : 1 = normal, 0 = mini boss
+    type:{
+        type:Number,
+        required:true
+    },
     // location : Dongeon
     location:{
         type:String,

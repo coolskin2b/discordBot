@@ -8,9 +8,20 @@ const {
   MessageActionRow,
   MessageEmbed,
 } = require("discord.js");
+//DATA BASE MANAGEMENT
 const mongoose = require("mongoose");
-const testing = require("./test-schema");
 const { token, dbAccess } = require("./config.json");
+// SCRIPT INITIALIZATION :
+const {
+  initializeBossList,
+  initializeSpawnBossList,
+} = require("./scripts/Initialization");
+
+// scripts :
+//affichage :
+const { miniBoss,mainBoss } = require("./scripts/affichage");
+
+
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -36,19 +47,16 @@ client.on("ready", async () => {
   });
   console.log("Connected to MongoDB");
   setTimeout(async () => {
-  await new testing({
-    message: "test",
-    }).save();
-  console.log("Saved to MongoDB");
-  }
-  , 5000);
+    initializeBossList();
+    initializeSpawnBossList();
+  }, 5000);
 });
 
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
 
   const { commandName } = interaction;
-
+  console.log(`Command ${commandName} triggered`);
   if (commandName === "ping") {
     await interaction.reply("Pong!");
   } else if (commandName === "server") {
@@ -61,49 +69,8 @@ client.on("interactionCreate", async (interaction) => {
       content: `Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`,
       ephemeral: true,
     });
-  } else if (commandName === "boss-update") {
-    // create row of buttons
-    const row1 = new MessageActionRow()
-      .addComponents(
-        new MessageButton()
-          .setCustomId("spotted")
-          .setLabel("   Il est vivant!   ")
-          .setStyle(3)
-      )
-      // add one more button
-      .addComponents(
-        new MessageButton()
-          .setCustomId("dead")
-          .setLabel("   Mort...Il est mort..   ")
-          .setStyle(1)
-      )
-      // add one more button
-      .addComponents(
-        new MessageButton()
-          .setCustomId("nothing")
-          .setLabel("   Y a rien...   ")
-          .setStyle(2)
-      )
-      // add one more button
-      .addComponents(
-        new MessageButton()
-          .setCustomId("cancel")
-          .setLabel("   Annuler   ")
-          .setStyle(4)
-      );
-
-    const embed = new MessageEmbed()
-      .setColor("#0099ff")
-      .setTitle("   Mise à jours du statut du boss : **GATE KEEPER **   ")
-      .setDescription("   veuillez choisir une option     ");
-
-    // send message with row of buttons
-    await interaction.reply({
-      content: "Pong!",
-      ephemeral: true,
-      embeds: [embed],
-      components: [row1],
-    });
+  } else if (commandName === "bosse-update") {
+    miniBoss(interaction);
   } else {
     await interaction.reply(`Un petit probleme de dev`);
   }

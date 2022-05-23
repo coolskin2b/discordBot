@@ -27,6 +27,12 @@ const memberCheck = new Schema({
     type: String,
     required: true,
   },
+  // spawnBoss object id ref readableId
+  spawnBossId: {
+    type: Schema.Types.ObjectId,
+    ref: "SpawnBoss",
+    required: true,
+  },
 });
 module.exports = mongoose.model("memberCheck", memberCheck, "memberCheck");
 

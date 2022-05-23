@@ -29,5 +29,28 @@ const SpawnBoss = new Schema({
     type: Number,
     required: false,
   },
+  //create readable id with https://github.com/ai/nanoid/
+    readableId: {
+        type: String,
+        required: true,
+    },
+    // last spwan boss object id ref SpawnBoss
+    lastSpawnBoss: {
+        type: Schema.Types.ObjectId,
+        ref: "SpawnBoss",
+        required: false,
+    },
+    // guild spawn control bool
+    guildSpawnControl: {
+        type: Boolean,
+        required: true,
+        default: false,
+    },
+    // datetime when missed spawn
+    // permet de donner une fourchette de temps pour le spawn + ou mois de temps : (missedSpawnAt - minispanw time) exemple : vue a louper a 14 heure et devais spawn a 13 heure on sait que le prochain swpan sera  la premochaine fois spawn mini + 1 heure
+    missedSpawnAt: {
+        type: Date,
+        default: null,
+    },
 });
 module.exports = mongoose.model("SpawnBoss", SpawnBoss, "SpawnBoss");
