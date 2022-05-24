@@ -10,6 +10,8 @@ const {
 } = require("discord.js");
 //DATA BASE MANAGEMENT
 const mongoose = require("mongoose");
+const schemaBoss = require("./SchemaDb/boss");
+const schemaSpawnBoss = require("./SchemaDb/spawnBoss");
 const { token, dbAccess } = require("./config.json");
 // SCRIPT INITIALIZATION :
 const {
@@ -19,9 +21,7 @@ const {
 
 // scripts :
 //affichage :
-const { miniBoss,mainBoss } = require("./scripts/affichage");
-
-
+const { miniBoss, mainBoss } = require("./scripts/affichage");
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -54,6 +54,7 @@ client.on("ready", async () => {
 
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
+  console.log("COMMAND INTERACTION" + interaction);
 
   const { commandName } = interaction;
   console.log(`Command ${commandName} triggered`);
@@ -69,20 +70,145 @@ client.on("interactionCreate", async (interaction) => {
       content: `Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`,
       ephemeral: true,
     });
-  } else if (commandName === "bosse-update") {
+  } else if (commandName === "mini-boss") {
     miniBoss(interaction);
-    console.log('JE SUIS UNE INTERACTION????')
+  } else if (commandName === "main-boss") {
+    // miniBoss(interaction);
+    console.log(mainb);
   } else {
     await interaction.reply(`Un petit probleme de dev`);
   }
+});
 
-  // INTERACTION DES BOUTONS :
-  client.on("interactionCreate", (interaction) => {
-    if (!interaction.isButton()) return;
-    console.log(interaction);
-    console.log('JE SUIS UNE INTERACTION????22222222222')
-    miniBoss(interaction);
-  });
+client.on("interactionCreate", (interaction) => {
+  if (!interaction.isButton()) return;
+  // console.log("BOUTON INTERACTION" + interaction);
+  // console.log(interaction);
+  // desctructuring interaction.message as message from interaction.message
+  const { interaction: interactionButton } = interaction.message;
+  if (interactionButton.commandName === "mini-boss") {
+    const { customId: bossId } = interaction;
+    var id_boss = mongoose.Types.ObjectId(bossId);
+
+    console.log(id_boss);
+    // function to get all boss from database
+    const getBoss = async () => {
+      // spawnBoss.findById(id) populate(boss)
+      const spawnBoss = await schemaSpawnBoss
+        .findById(id_boss)
+        .populate("boss");
+      console.log(spawnBoss);
+      return spawnBoss;
+    };
+
+    // const checkLastBoss = async () => {
+    //   const lastBoss = await schemaSpawnBoss.findOne({
+    //     boss: spawnBoss.boss,
+    //     createdAt: { $gte: spawnBoss.createdAt },
+    //   });
+
+    //   if (lastBoss) {
+    //     console.log(lastBoss);
+    //     return lastBoss;
+    //   } else {
+    //     return false;
+    //   }
+    // };
+
+    // var id = mongoose.Types.ObjectId('4edd40c86762e0fb12000003');
+    getBoss().then((spawnBoss) => {
+      const checkLastBoss = async () => {
+        const lastBoss = await schemaSpawnBoss.findOne({
+          boss: spawnBoss.boss,
+          createdAt: { $gte: spawnBoss.createdAt },
+        });
+  
+        if (lastBoss) {
+          console.log(lastBoss);
+          return lastBoss;
+        } else {
+          return false;
+        }
+      };
+
+
+      // check if spawnBoss is the last createdAt with the same boss
+      checkLastBoss().then((lastBoss) => {
+        if (lastBoss) {
+          console.log(lastBoss);
+          interaction.reply(
+            `${spawnBoss.boss.name} pas de date plus recente le dernier boss le ${lastBoss.createdAt}`
+          );
+        } else {
+          interaction.reply(
+            `${spawnBoss.boss.name} date plus recente : le ${spawnBoss.createdAt}`
+          );
+        }
+      });
+    });
+
+    // // function to get the boss from the database
+    //     const getBoss = async (id) => {
+    //       const boss = await schemaBoss.findById();
+    //       return boss;
+    //     };
+    //     getBoss(bossId).then((boss) => {
+    //       console.log(boss);
+    //       interaction.reply(
+    //         `${boss.name} est un mini boss de type ${boss.type}`
+    //       );
+    //     });
+
+    // find boss by id
+    //     schemaBoss.findById(id, (err, boss) => {
+    //       if (err) {
+    //         console.log(err);
+    //       } else {
+    //         // console.log(boss);
+    //         // console.log(boss.name);
+    //       }
+
+    //     console.log('bossId : ' + bossId);
+    //     const getBoss = async () => {
+    //       try {
+    //         return await schemaBoss.findById(bossId).exec();
+    //       } catch (error) {
+    //         console.error(error)
+    //       }
+    //     }
+    //  getBoss().then(async (boss) => {
+    //    console.log(boss);
+    //       if (boss) {
+    //         const { name, type, location, respawnmax, respawnmini, nbvivant, nbmort, image } = boss;
+    //         const bossEmbed = new MessageEmbed()
+    //           .setTitle(name)
+    //           .setColor("#0099ff")
+    //           .setThumbnail(image)
+    //           .addField("Type", type, true)
+    //           .addField("Location", location, true)
+    //           .addField("Respawn", `${respawnmini} - ${respawnmax}`, true)
+    //           .addField("Nb vivant", nbvivant, true)
+    //           .addField("Nb mort", nbmort, true);
+    //         await interaction.reply(bossEmbed);
+    //       } else {
+    //         await interaction.reply("Boss introuvable");
+    //       }
+    //     });
+
+    //find the boss in the database with the string bossId for _id
+    // const boss = await schemaBoss.findById(bossId).exec();
+    // console.log("----------------boss---------------------------------");
+    // console.log(boss);
+    // console.log("----------------boss---------------------------------");
+
+    const { user } = interaction;
+    // console.log("------------------ USER ------------------");
+    // console.log(user);
+    // console.log("------------------ USER ------------------");
+    // console.log("------------------ interactionButton ------------------");
+    // console.log(interactionButton);
+    // console.log("------------------ interactionButton ------------------");
+  }
 });
 
 client.login(token);

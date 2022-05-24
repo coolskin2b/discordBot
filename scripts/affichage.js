@@ -1,5 +1,7 @@
 //DATA BASE MANAGEMENT
 const mongoose = require("mongoose");
+const schemaBoss = require("../SchemaDb/boss");
+const spawnBoss = require("../SchemaDb/spawnBoss");
 const { token, dbAccess } = require("../config.json");
 // DATA :
 const {
@@ -11,8 +13,7 @@ const {
   MessageEmbed,
 } = require("discord.js");
 
-const schemaBoss = require("../SchemaDb/boss");
-const spawnBoss = require("../SchemaDb/spawnBoss");
+
 const { OutlandsBossData } = require("../data/OutlandsBossData");
 const { nanoid } = require("nanoid");
 
@@ -104,19 +105,7 @@ async function miniBoss(interaction) {
    +-------------+---------+------------+-----------+-----------------------------+----------------------+--------+
    */
 
-  // Create button :
-
-  console.log("ROW BUTOOON");
-  console.log("-------------------------------------------------------");
-  console.log(row1);
-  console.log("-------------------------------------------------------");
-
-  console.log("CREATE LISTE BOSSS");
-  console.log("-------------------------------------------------------");
-  // console.log(create_buttons(allSpawnBossType0));
-  console.log("-------------------------------------------------------");
-
-  // send message with row of buttons
+ // send message with row of buttons
   await interaction.reply({
     content: "```" + table + "```",
     ephemeral: true,

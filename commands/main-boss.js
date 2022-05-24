@@ -8,8 +8,8 @@ const {
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("bosse-update")
-        .setDescription("Mettre à jours le statut d'un boss"),
+        .setName("main-boss")
+        .setDescription("Voir le statut de tous les main boss et mettre à jours le statut d'un main-boss"),
     async execute(interaction) {
         const row1 = new MessageActionRow()
             .addComponents(
