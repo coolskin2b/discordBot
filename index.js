@@ -114,36 +114,27 @@ client.on("interactionCreate", (interaction) => {
     //     return false;
     //   }
     // };
-
+    const checkLastBoss = async (spawnBoss) => {
+      const lastBoss = await schemaSpawnBoss
+        .findOne({
+          boss: spawnBoss.boss,
+        })
+        .sort({ createdAt: -1 })
+        .limit(1);
+      // on renvoit le last spawn
+      return lastBoss;
+    };
     // var id = mongoose.Types.ObjectId('4edd40c86762e0fb12000003');
     getBoss().then((spawnBoss) => {
-      const checkLastBoss = async () => {
-        const lastBoss = await schemaSpawnBoss.findOne({
-          boss: spawnBoss.boss,
-          createdAt: { $gte: spawnBoss.createdAt },
-        });
-  
-        if (lastBoss) {
-          console.log(lastBoss);
-          return lastBoss;
-        } else {
-          return false;
-        }
-      };
-
-
       // check if spawnBoss is the last createdAt with the same boss
-      checkLastBoss().then((lastBoss) => {
-        if (lastBoss) {
+      checkLastBoss(spawnBoss).then((lastBoss) => {
+        lastBoss.populate("boss").then((lastBoss) => {
           console.log(lastBoss);
           interaction.reply(
-            `${spawnBoss.boss.name} pas de date plus recente le dernier boss le ${lastBoss.createdAt}`
+// boss name and createdAt
+            `${lastBoss.boss.name} créé le ${lastBoss.createdAt.toLocaleString()}`
           );
-        } else {
-          interaction.reply(
-            `${spawnBoss.boss.name} date plus recente : le ${spawnBoss.createdAt}`
-          );
-        }
+        });
       });
     });
 
