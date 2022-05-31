@@ -19,9 +19,14 @@ const {
   initializeSpawnBossList,
 } = require("./scripts/Initialization");
 
+
+//TODO : Node Cron pour le cron de mise à jours :
+
 // scripts :
 //affichage :
 const { miniBoss, mainBoss } = require("./scripts/affichage");
+
+const {deleteOldMessage} = require("./scripts/utils");
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -53,7 +58,6 @@ client.on("ready", async () => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-
   if (!interaction.isCommand()) return;
   const { commandName } = interaction;
   if (commandName === "ping") {
@@ -68,71 +72,83 @@ client.on("interactionCreate", async (interaction) => {
       ephemeral: true,
     });
   } else if (commandName === "mini-boss") {
-    miniBoss(interaction);
+    miniBoss(interaction)
   } else if (commandName === "main-boss") {
-    // miniBoss(interaction);
-    console.log(mainb);
   } else {
     await interaction.reply(`Un petit probleme de dev`);
   }
 });
 
+
+
 client.on("interactionCreate", (interaction) => {
- console.log(interaction);
+
 
   if (!interaction.isButton()) return;
-  const { interaction: interactionButton } = interaction.message;
-  console.log(interactionButton);
-  
-  // check interactionButton.commandName different for commands :
+  const { message } = interaction;
 
-  if (typeof interactionButton.commandName != 'undefined' && Object(interactionButton.commandName) === false) {
-  if (interaction.message && interactionButton.commandName === "mini-boss") {
-    const { customId: bossId } = interaction;
-    var id_boss = mongoose.Types.ObjectId(bossId);
+  // IMPORTANT : SI CLICK SUR BOUTTON APRES MESSAGE DE COMMANDE : message.interaction existe :
+  if (message.interaction) {
+    if (message.interaction.commandName === "mini-boss") {
 
-    // function to get all boss from database
-    const getBoss = async () => {
-      // spawnBoss.findById(id) populate(boss)
-      const spawnBoss = await schemaSpawnBoss
-        .findById(id_boss)
-        .populate("boss");
-      // console.log(spawnBoss);
-      return spawnBoss;
-    };
+      deleteOldMessage(interaction)
 
-    // recuperer le dernier spawn du boss :
-    const checkLastBoss = async (spawnBoss) => {
-      const lastBoss = await schemaSpawnBoss
-        .findOne({
-          boss: spawnBoss.boss,
-        })
-        .sort({ createdAt: -1 })
-        .limit(1);
-      // on renvoit le last spawn
-      return lastBoss;
-    };
-    // var id = mongoose.Types.ObjectId('4edd40c86762e0fb12000003');
-    getBoss().then((spawnBoss) => {
-      // check if spawnBoss is the last createdAt with the same boss
-      checkLastBoss(spawnBoss).then((lastBoss) => {
-        // reply embed message :
-        const embed = new MessageEmbed()
-          .setTitle(`${spawnBoss.boss.name}`)
-          .setDescription(`${spawnBoss.boss.description}`)
-          .setColor("#0099ff")
-          .setThumbnail(`${spawnBoss.boss.image}`)
-          .addField("Last spawn", `${lastBoss.createdAt}`);
-          const row = new MessageActionRow()
-        // si il y a naturalCheck à true on doit proposer des boutons : boss naturel ou boss summoned
-        if (spawnBoss.boss.naturalCheck) {
-          // need to add button : summoned boss , natural boss
-          row.addComponents(
+      // console.log('------------------------------------');
+      // console.log(interaction.channel.messages.fetch())
+      // console.log('------------------------------------');
+      const { customId: bossId } = interaction;
+      var id_boss = mongoose.Types.ObjectId(bossId);
+      const getBoss = async () => {
+        const spawnBoss = await schemaSpawnBoss
+          .findById(id_boss)
+          .populate("boss");
+        return spawnBoss;
+      };
+
+      // recuperer le dernier spawn du boss :
+      const checkLastBoss = async (spawnBoss) => {
+        const lastBoss = await schemaSpawnBoss
+          .findOne({
+            boss: spawnBoss.boss,
+          })
+          .sort({ createdAt: -1 })
+          .limit(1);
+        // on renvoit le last spawn
+        return lastBoss;
+      };
+      // var id = mongoose.Types.ObjectId('4edd40c86762e0fb12000003');
+      getBoss().then((spawnBoss) => {
+        // check if spawnBoss is the last createdAt with the same boss
+        checkLastBoss(spawnBoss).then((lastBoss) => {
+          // reply embed message :
+          const embed = new MessageEmbed()
+            .setTitle(`${spawnBoss.boss.name}`)
+            .setDescription(`${spawnBoss.boss.description}`)
+            .setColor("#0099ff")
+            .setThumbnail(`${spawnBoss.boss.image}`)
+            .addField("Last spawn", `${lastBoss.createdAt}`);
+          const row = new MessageActionRow();
+
+          // CUSTOM ID : bossId-ACTION-
+          // ACTION : 1 - summoned
+          // ACTION : 2 - NATURAL
+          // ACTION : 3 - Need Check
+          // ACTION : 4 - ALIVE
+          // ACTION : 5 - DEAD
+          // ACTION : 6 - NOTHING
+          // ACTION : 7 - CANCEL
+          // console.log("------------ spawnBoss -----------");
+          // console.log(spawnBoss);
+          // console.log("------------ spawnBoss -----------");
+          // si il y a naturalCheck à true on doit proposer des boutons : boss naturel ou boss summoned
+          if (spawnBoss.boss.naturalCheck) {
+            // need to add button : summoned boss , natural boss
+            row.addComponents(
               new MessageButton()
                 .setCustomId("summoned")
                 .setLabel("Summoned Boss")
                 .setStyle(3)
-            )
+            );
             // add one more button
             row.addComponents(
               new MessageButton()
@@ -140,48 +156,60 @@ client.on("interactionCreate", (interaction) => {
                 .setLabel("  Natural Boss")
                 .setStyle(1)
             );
-        } else {
-          // si le boss est naturel on propose de l'envoyer :
-          row.addComponents(
-            new MessageButton()
-              .setCustomId("naturalCheck")
-              .setLabel("Verifier si naturel ou summoned?")
-              .setStyle(3)
-          )
-          row.addComponents(
-            new MessageButton()
-              .setCustomId("spotted")
-              .setLabel("   Il est vivant!   ")
-              .setStyle(3)
-          )
-          // add one more button
-          row.addComponents(
-            new MessageButton()
-              .setCustomId("dead")
-              .setLabel("   Mort...Il est mort..   ")
-              .setStyle(1)
-          )
-          // add one more button
-          row.addComponents(
-            new MessageButton()
-              .setCustomId("nothing")
-              .setLabel("   Y a rien...   ")
-              .setStyle(2)
-          )
-          // add one more button
-          row.addComponents(
-            new MessageButton()
-              .setCustomId("cancel")
-              .setLabel("   Annuler   ")
-              .setStyle(4)
-          );
-        }
-        interaction.reply({ embeds: [embed], components: [row]  });
-        // interaction.reply(`${spawnBoss.boss.name}`);
+          } else {
+            // si le boss est naturel on propose de l'envoyer :
+            row.addComponents(
+              new MessageButton()
+                .setCustomId("naturalCheck")
+                .setLabel("Verifier si naturel ou summoned?")
+                .setStyle(3)
+            );
+            row.addComponents(
+              new MessageButton()
+                .setCustomId("spotted")
+                .setLabel("   Il est vivant!   ")
+                .setStyle(3)
+            );
+            // add one more button
+            row.addComponents(
+              new MessageButton()
+                .setCustomId("dead")
+                .setLabel("   Mort...Il est mort..   ")
+                .setStyle(1)
+            );
+            // add one more button
+            row.addComponents(
+              new MessageButton()
+                .setCustomId("nothing")
+                .setLabel("   Y a rien...   ")
+                .setStyle(2)
+            );
+            // add one more button
+            row.addComponents(
+              new MessageButton()
+                .setCustomId("cancel")
+                .setLabel("   Annuler   ")
+                .setStyle(4)
+            );
+          }
+          interaction.reply({ embeds: [embed], components: [row] });
+          // interaction.reply(`${spawnBoss.boss.name}`);
+        });
       });
-    });
 
-    const { user } = interaction;
-  }}
+      const { user } = interaction;
+    }
+
+  // IMPORTANT : CLICK SUR BUTTON SANS MESSAGE DE COMMANDE : message.interaction n'existe pas :
+  if (typeof message.interaction != "undefined") {
+    console.log("JE DEVRAIS ETRE LA");
+    // console.log(message.interactions);
+    // RESPONSE AU CLICK DE BUTTON SUR UN SPAWN DE BOSS :
+  }
+
+
+
+
+  }
 });
 client.login(token);
