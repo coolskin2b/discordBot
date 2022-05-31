@@ -26,7 +26,7 @@ const {
 //affichage :
 const { miniBoss, mainBoss } = require("./scripts/affichage");
 
-const {deleteOldMessage} = require("./scripts/utils");
+const {deleteOldMessage,buttonActionObjCreator} = require("./scripts/utils");
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -85,6 +85,9 @@ client.on("interactionCreate", (interaction) => {
 
 
   if (!interaction.isButton()) return;
+  // console.log('JE SUIS UN BOUTON CLICKER');
+  // console.log(interaction)
+  // console.log('JE SUIS UN BOUTON CLICKER');
   const { message } = interaction;
 
   // IMPORTANT : SI CLICK SUR BOUTTON APRES MESSAGE DE COMMANDE : message.interaction existe :
@@ -93,9 +96,6 @@ client.on("interactionCreate", (interaction) => {
 
       deleteOldMessage(interaction)
 
-      // console.log('------------------------------------');
-      // console.log(interaction.channel.messages.fetch())
-      // console.log('------------------------------------');
       const { customId: bossId } = interaction;
       var id_boss = mongoose.Types.ObjectId(bossId);
       const getBoss = async () => {
@@ -128,7 +128,7 @@ client.on("interactionCreate", (interaction) => {
             .setThumbnail(`${spawnBoss.boss.image}`)
             .addField("Last spawn", `${lastBoss.createdAt}`);
           const row = new MessageActionRow();
-
+          // SPAWN UPDATE BUTTON :
           // CUSTOM ID : bossId-ACTION-
           // ACTION : 1 - summoned
           // ACTION : 2 - NATURAL
@@ -145,49 +145,49 @@ client.on("interactionCreate", (interaction) => {
             // need to add button : summoned boss , natural boss
             row.addComponents(
               new MessageButton()
-                .setCustomId("summoned")
-                .setLabel("Summoned Boss")
+                .setCustomId(`SPU-${spawnBoss._id}-1`)
+                .setLabel("Boss summoned?")
                 .setStyle(3)
             );
             // add one more button
             row.addComponents(
               new MessageButton()
-                .setCustomId("natural")
-                .setLabel("  Natural Boss")
+                .setCustomId(`SPU-${spawnBoss._id}-2`)
+                .setLabel("Boss naturel?")
                 .setStyle(1)
             );
           } else {
             // si le boss est naturel on propose de l'envoyer :
             row.addComponents(
               new MessageButton()
-                .setCustomId("naturalCheck")
+              .setCustomId(`SPU-${spawnBoss._id}-3`)
                 .setLabel("Verifier si naturel ou summoned?")
                 .setStyle(3)
             );
             row.addComponents(
               new MessageButton()
-                .setCustomId("spotted")
+              .setCustomId(`SPU-${spawnBoss._id}-4`)
                 .setLabel("   Il est vivant!   ")
                 .setStyle(3)
             );
             // add one more button
             row.addComponents(
               new MessageButton()
-                .setCustomId("dead")
+              .setCustomId(`SPU-${spawnBoss._id}-5`)
                 .setLabel("   Mort...Il est mort..   ")
                 .setStyle(1)
             );
             // add one more button
             row.addComponents(
               new MessageButton()
-                .setCustomId("nothing")
+              .setCustomId(`SPU-${spawnBoss._id}-6`)
                 .setLabel("   Y a rien...   ")
                 .setStyle(2)
             );
             // add one more button
             row.addComponents(
               new MessageButton()
-                .setCustomId("cancel")
+              .setCustomId(`SPU-${spawnBoss._id}-7`)
                 .setLabel("   Annuler   ")
                 .setStyle(4)
             );
@@ -199,17 +199,52 @@ client.on("interactionCreate", (interaction) => {
 
       const { user } = interaction;
     }
+  }
+  // // IMPORTANT : CLICK SUR BUTTON SANS MESSAGE DE COMMANDE : message.interaction n'existe pas :
+  // if (typeof message.interaction != "undefined " && message.interaction == null) {
+  //   console.log("JE DEVRAIS ETRE LA");
+  //   console.log(message.interactions);
+  //   // RESPONSE AU CLICK DE BUTTON SUR UN SPAWN DE BOSS :
+  // }
 
-  // IMPORTANT : CLICK SUR BUTTON SANS MESSAGE DE COMMANDE : message.interaction n'existe pas :
-  if (typeof message.interaction != "undefined") {
-    console.log("JE DEVRAIS ETRE LA");
-    // console.log(message.interactions);
-    // RESPONSE AU CLICK DE BUTTON SUR UN SPAWN DE BOSS :
+  // check if object properties exist  message.interactions and note undefined
+
+  if (typeof interaction.message != "undefined" && interaction.message != null) {
+    // console.log('---------------interaction.message---------------');
+    // console.log(interaction.message)
+    // console.log('---------------interaction.message---------------');
+
+    // console.log('---------------interaction---------------');
+    // console.log(interaction)
+    // console.log('---------------interaction---------------');
+    // // interation reply "message bien enregistrer"
+
+
+    // console.log('---------------interaction USER---------------');
+    // console.log(interaction.user)
+    // console.log('---------------interaction USER---------------');
+
+
+    // console.log('--------------- CUSTOM ID--------------');
+    // console.log(interaction.customId)
+    // console.log('---------------CUSTOM ID---------------');
+    const tabButton = buttonActionObjCreator(interaction.customId)
+    console.log('---------------tabButton---------------');
+    console.log(tabButton)
+    console.log('---------------tabButton---------------');
+
+    // const array = interaction.customId.split('-');
+    // console.log('---------------array---------------');
+    // console.log(array)
+    // console.log('---------------array---------------');
+    // console.log('--------------- component TYPE--------------');
+    // console.log(interaction.componentType)
+    // console.log('---------------component TYPE--------------');
+
+    // interaction.reply("message bien enregistrer");
+
   }
 
 
-
-
-  }
 });
 client.login(token);
