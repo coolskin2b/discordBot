@@ -52,5 +52,11 @@ const SpawnBoss = new Schema({
         type: Date,
         default: null,
     },
+    // natural check if boss is alive check one hours later if it summunoned or natural need natural ckeck
+    naturalCheck: {
+        type: Boolean,
+        required: true,
+        default: false,
+    },
 });
 module.exports = mongoose.model("SpawnBoss", SpawnBoss, "SpawnBoss");

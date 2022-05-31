@@ -1,0 +1,24 @@
+APPLICATION_COMMAND
+
+MESSAGE_COMPONENT
+    webhookId: '977193024465559633',
+    groupActivityApplication: null,
+    applicationId: '977193024465559633',
+    activity: null,
+    flags: MessageFlags { bitfield: 64 },
+    reference: null,
+    interaction: {
+      id: '980922034429247488',
+      type: 'APPLICATION_COMMAND',
+      commandName: 'mini-boss',
+      user: [User]
+    }
+  },
+  customId: '6291f4c05c617278849309f3',
+  componentType: 'BUTTON',
+  deferred: false,
+  ephemeral: null,
+  replied: false,
+  webhook: InteractionWebhook { id: '977193024465559633' }
+}
+new ObjectId("6291f4c05c617278849309f3")

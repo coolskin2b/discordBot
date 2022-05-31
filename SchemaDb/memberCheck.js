@@ -13,6 +13,8 @@ const memberCheck = new Schema({
   // 0: fount alive
   // 1: found dead
   // 2: found nothing
+  // 3: Natural
+  // 4 : summoned
   actionType: {
     type: Number,
     required: true,

@@ -53,11 +53,9 @@ client.on("ready", async () => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand()) return;
-  console.log("COMMAND INTERACTION" + interaction);
 
+  if (!interaction.isCommand()) return;
   const { commandName } = interaction;
-  console.log(`Command ${commandName} triggered`);
   if (commandName === "ping") {
     await interaction.reply("Pong!");
   } else if (commandName === "server") {
@@ -65,7 +63,6 @@ client.on("interactionCreate", async (interaction) => {
       `Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`
     );
   } else if (commandName === "user-info") {
-    console.log(interaction.user);
     await interaction.reply({
       content: `Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`,
       ephemeral: true,
@@ -81,39 +78,30 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 client.on("interactionCreate", (interaction) => {
+ console.log(interaction);
+
   if (!interaction.isButton()) return;
-  // console.log("BOUTON INTERACTION" + interaction);
-  // console.log(interaction);
-  // desctructuring interaction.message as message from interaction.message
   const { interaction: interactionButton } = interaction.message;
-  if (interactionButton.commandName === "mini-boss") {
+  console.log(interactionButton);
+  
+  // check interactionButton.commandName different for commands :
+
+  if (typeof interactionButton.commandName != 'undefined' && Object(interactionButton.commandName) === false) {
+  if (interaction.message && interactionButton.commandName === "mini-boss") {
     const { customId: bossId } = interaction;
     var id_boss = mongoose.Types.ObjectId(bossId);
 
-    console.log(id_boss);
     // function to get all boss from database
     const getBoss = async () => {
       // spawnBoss.findById(id) populate(boss)
       const spawnBoss = await schemaSpawnBoss
         .findById(id_boss)
         .populate("boss");
-      console.log(spawnBoss);
+      // console.log(spawnBoss);
       return spawnBoss;
     };
 
-    // const checkLastBoss = async () => {
-    //   const lastBoss = await schemaSpawnBoss.findOne({
-    //     boss: spawnBoss.boss,
-    //     createdAt: { $gte: spawnBoss.createdAt },
-    //   });
-
-    //   if (lastBoss) {
-    //     console.log(lastBoss);
-    //     return lastBoss;
-    //   } else {
-    //     return false;
-    //   }
-    // };
+    // recuperer le dernier spawn du boss :
     const checkLastBoss = async (spawnBoss) => {
       const lastBoss = await schemaSpawnBoss
         .findOne({
@@ -128,78 +116,72 @@ client.on("interactionCreate", (interaction) => {
     getBoss().then((spawnBoss) => {
       // check if spawnBoss is the last createdAt with the same boss
       checkLastBoss(spawnBoss).then((lastBoss) => {
-        lastBoss.populate("boss").then((lastBoss) => {
-          console.log(lastBoss);
-          interaction.reply(
-// boss name and createdAt
-            `${lastBoss.boss.name} créé le ${lastBoss.createdAt.toLocaleString()}`
+        // reply embed message :
+        const embed = new MessageEmbed()
+          .setTitle(`${spawnBoss.boss.name}`)
+          .setDescription(`${spawnBoss.boss.description}`)
+          .setColor("#0099ff")
+          .setThumbnail(`${spawnBoss.boss.image}`)
+          .addField("Last spawn", `${lastBoss.createdAt}`);
+          const row = new MessageActionRow()
+        // si il y a naturalCheck à true on doit proposer des boutons : boss naturel ou boss summoned
+        if (spawnBoss.boss.naturalCheck) {
+          // need to add button : summoned boss , natural boss
+          row.addComponents(
+              new MessageButton()
+                .setCustomId("summoned")
+                .setLabel("Summoned Boss")
+                .setStyle(3)
+            )
+            // add one more button
+            row.addComponents(
+              new MessageButton()
+                .setCustomId("natural")
+                .setLabel("  Natural Boss")
+                .setStyle(1)
+            );
+        } else {
+          // si le boss est naturel on propose de l'envoyer :
+          row.addComponents(
+            new MessageButton()
+              .setCustomId("naturalCheck")
+              .setLabel("Verifier si naturel ou summoned?")
+              .setStyle(3)
+          )
+          row.addComponents(
+            new MessageButton()
+              .setCustomId("spotted")
+              .setLabel("   Il est vivant!   ")
+              .setStyle(3)
+          )
+          // add one more button
+          row.addComponents(
+            new MessageButton()
+              .setCustomId("dead")
+              .setLabel("   Mort...Il est mort..   ")
+              .setStyle(1)
+          )
+          // add one more button
+          row.addComponents(
+            new MessageButton()
+              .setCustomId("nothing")
+              .setLabel("   Y a rien...   ")
+              .setStyle(2)
+          )
+          // add one more button
+          row.addComponents(
+            new MessageButton()
+              .setCustomId("cancel")
+              .setLabel("   Annuler   ")
+              .setStyle(4)
           );
-        });
+        }
+        interaction.reply({ embeds: [embed], components: [row]  });
+        // interaction.reply(`${spawnBoss.boss.name}`);
       });
     });
 
-    // // function to get the boss from the database
-    //     const getBoss = async (id) => {
-    //       const boss = await schemaBoss.findById();
-    //       return boss;
-    //     };
-    //     getBoss(bossId).then((boss) => {
-    //       console.log(boss);
-    //       interaction.reply(
-    //         `${boss.name} est un mini boss de type ${boss.type}`
-    //       );
-    //     });
-
-    // find boss by id
-    //     schemaBoss.findById(id, (err, boss) => {
-    //       if (err) {
-    //         console.log(err);
-    //       } else {
-    //         // console.log(boss);
-    //         // console.log(boss.name);
-    //       }
-
-    //     console.log('bossId : ' + bossId);
-    //     const getBoss = async () => {
-    //       try {
-    //         return await schemaBoss.findById(bossId).exec();
-    //       } catch (error) {
-    //         console.error(error)
-    //       }
-    //     }
-    //  getBoss().then(async (boss) => {
-    //    console.log(boss);
-    //       if (boss) {
-    //         const { name, type, location, respawnmax, respawnmini, nbvivant, nbmort, image } = boss;
-    //         const bossEmbed = new MessageEmbed()
-    //           .setTitle(name)
-    //           .setColor("#0099ff")
-    //           .setThumbnail(image)
-    //           .addField("Type", type, true)
-    //           .addField("Location", location, true)
-    //           .addField("Respawn", `${respawnmini} - ${respawnmax}`, true)
-    //           .addField("Nb vivant", nbvivant, true)
-    //           .addField("Nb mort", nbmort, true);
-    //         await interaction.reply(bossEmbed);
-    //       } else {
-    //         await interaction.reply("Boss introuvable");
-    //       }
-    //     });
-
-    //find the boss in the database with the string bossId for _id
-    // const boss = await schemaBoss.findById(bossId).exec();
-    // console.log("----------------boss---------------------------------");
-    // console.log(boss);
-    // console.log("----------------boss---------------------------------");
-
     const { user } = interaction;
-    // console.log("------------------ USER ------------------");
-    // console.log(user);
-    // console.log("------------------ USER ------------------");
-    // console.log("------------------ interactionButton ------------------");
-    // console.log(interactionButton);
-    // console.log("------------------ interactionButton ------------------");
-  }
+  }}
 });
-
 client.login(token);
