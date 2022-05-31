@@ -19,14 +19,18 @@ const {
   initializeSpawnBossList,
 } = require("./scripts/Initialization");
 
-
 //TODO : Node Cron pour le cron de mise à jours :
 
 // scripts :
 //affichage :
 const { miniBoss, mainBoss } = require("./scripts/affichage");
 
-const {deleteOldMessage,buttonActionObjCreator} = require("./scripts/utils");
+const {
+  deleteOldMessage,
+  buttonActionObjCreator,
+  getSpawnBoss,
+  checkLastSpawnBoss,
+} = require("./scripts/utils");
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -72,18 +76,14 @@ client.on("interactionCreate", async (interaction) => {
       ephemeral: true,
     });
   } else if (commandName === "mini-boss") {
-    miniBoss(interaction)
+    miniBoss(interaction);
   } else if (commandName === "main-boss") {
   } else {
     await interaction.reply(`Un petit probleme de dev`);
   }
 });
 
-
-
 client.on("interactionCreate", (interaction) => {
-
-
   if (!interaction.isButton()) return;
   // console.log('JE SUIS UN BOUTON CLICKER');
   // console.log(interaction)
@@ -93,33 +93,15 @@ client.on("interactionCreate", (interaction) => {
   // IMPORTANT : SI CLICK SUR BOUTTON APRES MESSAGE DE COMMANDE : message.interaction existe :
   if (message.interaction) {
     if (message.interaction.commandName === "mini-boss") {
-
-      deleteOldMessage(interaction)
+      deleteOldMessage(interaction);
 
       const { customId: bossId } = interaction;
-      var id_boss = mongoose.Types.ObjectId(bossId);
-      const getBoss = async () => {
-        const spawnBoss = await schemaSpawnBoss
-          .findById(id_boss)
-          .populate("boss");
-        return spawnBoss;
-      };
+      var id_spawn_boss = mongoose.Types.ObjectId(bossId);
 
-      // recuperer le dernier spawn du boss :
-      const checkLastBoss = async (spawnBoss) => {
-        const lastBoss = await schemaSpawnBoss
-          .findOne({
-            boss: spawnBoss.boss,
-          })
-          .sort({ createdAt: -1 })
-          .limit(1);
-        // on renvoit le last spawn
-        return lastBoss;
-      };
       // var id = mongoose.Types.ObjectId('4edd40c86762e0fb12000003');
-      getBoss().then((spawnBoss) => {
+      getSpawnBoss(id_spawn_boss).then((spawnBoss) => {
         // check if spawnBoss is the last createdAt with the same boss
-        checkLastBoss(spawnBoss).then((lastBoss) => {
+        checkLastSpawnBoss(spawnBoss).then((lastBoss) => {
           // reply embed message :
           const embed = new MessageEmbed()
             .setTitle(`${spawnBoss.boss.name}`)
@@ -160,34 +142,34 @@ client.on("interactionCreate", (interaction) => {
             // si le boss est naturel on propose de l'envoyer :
             row.addComponents(
               new MessageButton()
-              .setCustomId(`SPU-${spawnBoss._id}-3`)
+                .setCustomId(`SPU-${spawnBoss._id}-3`)
                 .setLabel("Verifier si naturel ou summoned?")
                 .setStyle(3)
             );
             row.addComponents(
               new MessageButton()
-              .setCustomId(`SPU-${spawnBoss._id}-4`)
+                .setCustomId(`SPU-${spawnBoss._id}-4`)
                 .setLabel("   Il est vivant!   ")
                 .setStyle(3)
             );
             // add one more button
             row.addComponents(
               new MessageButton()
-              .setCustomId(`SPU-${spawnBoss._id}-5`)
+                .setCustomId(`SPU-${spawnBoss._id}-5`)
                 .setLabel("   Mort...Il est mort..   ")
                 .setStyle(1)
             );
             // add one more button
             row.addComponents(
               new MessageButton()
-              .setCustomId(`SPU-${spawnBoss._id}-6`)
+                .setCustomId(`SPU-${spawnBoss._id}-6`)
                 .setLabel("   Y a rien...   ")
                 .setStyle(2)
             );
             // add one more button
             row.addComponents(
               new MessageButton()
-              .setCustomId(`SPU-${spawnBoss._id}-7`)
+                .setCustomId(`SPU-${spawnBoss._id}-7`)
                 .setLabel("   Annuler   ")
                 .setStyle(4)
             );
@@ -209,7 +191,10 @@ client.on("interactionCreate", (interaction) => {
 
   // check if object properties exist  message.interactions and note undefined
 
-  if (typeof interaction.message != "undefined" && interaction.message != null) {
+  if (
+    typeof interaction.message != "undefined" &&
+    interaction.message != null
+  ) {
     // console.log('---------------interaction.message---------------');
     // console.log(interaction.message)
     // console.log('---------------interaction.message---------------');
@@ -219,32 +204,53 @@ client.on("interactionCreate", (interaction) => {
     // console.log('---------------interaction---------------');
     // // interation reply "message bien enregistrer"
 
-
     // console.log('---------------interaction USER---------------');
     // console.log(interaction.user)
     // console.log('---------------interaction USER---------------');
 
-
     // console.log('--------------- CUSTOM ID--------------');
     // console.log(interaction.customId)
     // console.log('---------------CUSTOM ID---------------');
-    const tabButton = buttonActionObjCreator(interaction.customId)
-    console.log('---------------tabButton---------------');
-    console.log(tabButton)
-    console.log('---------------tabButton---------------');
+
+    // console.log("---------------tabButton---------------");
+    // console.log(tabButton);
+    // console.log("---------------tabButton---------------");
 
     // const array = interaction.customId.split('-');
     // console.log('---------------array---------------');
     // console.log(array)
     // console.log('---------------array---------------');
     // console.log('--------------- component TYPE--------------');
-    // console.log(interaction.componentType)
+    console.log(interaction.componentType);
     // console.log('---------------component TYPE--------------');
+    // const object = {
+    //   buttonAction: array[0],
+    //   bossId: mongoose.Types.ObjectId(array[01]),
+    //   action: array[2],
+    // };
 
+    const tabButton = buttonActionObjCreator(interaction.customId);
+    // SPAWN UPDATE BUTTON :
+    // CUSTOM ID : bossId-ACTION-
+    // ACTION : 1 - summoned
+    // ACTION : 2 - NATURAL
+    // ACTION : 3 - Need Check
+    // ACTION : 4 - ALIVE
+    // ACTION : 5 - DEAD
+    // ACTION : 6 - NOTHING
+    // ACTION : 7 - CANCEL
+    const { buttonAction, bossId, action } = tabButton;
     // interaction.reply("message bien enregistrer");
-
+    if (interaction.componentType === "BUTTON" && buttonAction === "SPU") {
+      deleteOldMessage(interaction);
+      interaction.reply(`hello ${interaction.user.username}`);
+      // TODO : 1 recuperer le spawnboss avec le bossId
+      getSpawnBoss(bossId).then((spawnBoss) => {
+        console.log('---------------spawnBoss---------------');
+        console.log(spawnBoss)
+        console.log('---------------spawnBoss---------------');
+      });
+    }
   }
-
-
 });
 client.login(token);
