@@ -10,11 +10,13 @@ const memberCheck = new Schema({
     default: Date.now,
   },
   // check action type:
-  // 0: fount alive
-  // 1: found dead
-  // 2: found nothing
-  // 3: Natural
-  // 4 : summoned
+  // ACTION : 1 - summoned
+  // ACTION : 2 - NATURAL
+  // ACTION : 3 - Need Check
+  // ACTION : 4 - ALIVE
+  // ACTION : 5 - DEAD
+  // ACTION : 6 - NOTHING
+  // ACTION : 7 - CANCEL
   actionType: {
     type: Number,
     required: true,
@@ -37,4 +39,3 @@ const memberCheck = new Schema({
   },
 });
 module.exports = mongoose.model("memberCheck", memberCheck, "memberCheck");
-

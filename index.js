@@ -28,9 +28,9 @@ const { miniBoss, mainBoss } = require("./scripts/affichage");
 const {
   deleteOldMessage,
   buttonActionObjCreator,
-  getSpawnBoss,
-  checkLastSpawnBoss,
 } = require("./scripts/utils");
+
+const {getLastSpawn, getLastSpawnSort, updateSpawn, getSpawnBoss, checkLastSpawnBoss} = require("./scripts/spawn");
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -243,12 +243,17 @@ client.on("interactionCreate", (interaction) => {
     // interaction.reply("message bien enregistrer");
     if (interaction.componentType === "BUTTON" && buttonAction === "SPU") {
       deleteOldMessage(interaction);
-      interaction.reply(`hello ${interaction.user.username}`);
+
       // TODO : 1 recuperer le spawnboss avec le bossId
       getSpawnBoss(bossId).then((spawnBoss) => {
-        console.log('---------------spawnBoss---------------');
-        console.log(spawnBoss)
-        console.log('---------------spawnBoss---------------');
+        // console.log('---------------spawnBoss---------------');
+        // console.log(spawnBoss)
+        // console.log('---------------spawnBoss---------------');
+
+        // console.log('button action : '  +buttonAction + ' boss id : '+ bossId + ' action : ' + action);
+        resultat = updateSpawn(spawnBoss, interaction, action);
+        interaction.reply(`hello ${interaction.user.username} ${resultat}`);
+
       });
     }
   }
