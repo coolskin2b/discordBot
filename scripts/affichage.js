@@ -1,7 +1,7 @@
 //DATA BASE MANAGEMENT
 const mongoose = require("mongoose");
-const schemaBoss = require("../SchemaDb/boss");
-const spawnBoss = require("../SchemaDb/spawnBoss");
+const Boss = require("../SchemaDb/boss");
+const SpawnBoss = require("../SchemaDb/spawnBoss");
 const { token, dbAccess } = require("../config.json");
 // DATA :
 const {
@@ -12,7 +12,6 @@ const {
   MessageActionRow,
   MessageEmbed,
 } = require("discord.js");
-
 
 const { OutlandsBossData } = require("../data/OutlandsBossData");
 const { nanoid } = require("nanoid");
@@ -55,28 +54,102 @@ async function miniBoss(interaction) {
    `;
 
   // check spwanboss
-  const spawnBossData = await spawnBoss.find({});
-  // check boss
-  // console.log(spawnBossData);
+  const spawnBossData = await SpawnBoss.find({});
 
-  // // for each spawnboss
-  // for (let i = 0; i < spawnBossData.length; i++) {
-  //   //boss id = const SpawnBoss = new Schema({
-  //   // boss: { type: Schema.Types.ObjectId, ref: "Boss", required: true },
+  const BossData = await Boss.find({});
 
-  //   const bossData = await schemaBoss.find({
-  //     _id: spawnBossData[i].boss,
-  //   });
+  // [
+  //   {
+  //     '$match': {
+  //       'type': 0
+  //     }
+  //   }, {
+  //     '$lookup': {
+  //       'from': 'SpawnBoss',
+  //       'localField': '_id',
+  //       'foreignField': 'boss',
+  //       'as': 'spawn'
+  //     }
+  //   }, {}
+  // ]
 
-  //   // if boss
-  // }
+  // Aggregate BossData
+  const aggregation = [
+    {
+      $match: {
+        type: 0,
+      },
+    },
+    {
+      $lookup: {
+        from: "SpawnBoss",
+        localField: "_id",
+        foreignField: "boss",
+        as: "spawn",
+      },
+    },
+    {
+      $unwind: {
+        path: "$spawn",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $group: {
+        _id: "$_id",
+        name: {
+          $first: "$name",
+        },
+        control: {
+          $first: "$control",
+        },
+        spawnMin: {
+          $first: "$spawnMin",
+        },
+        spawnMax: {
+          $first: "$spawnMax",
+        },
+        lastChecked: {
+          $first: "$lastChecked",
+        },
+        status: {
+          $first: "$status",
+        },
+        spawn: {
+          $push: "$spawn",
+        },
+      },
+    },
+  ];
+
+  const BossDataAaggregate = await Boss.aggregate(aggregation);
+  console.log("-------BossDataAaggregate-------");
+  console.log(BossDataAaggregate);
+  console.log("-------BossDataAaggregate-------");
+
+  // pipeline BossDataAaggregate  spawn  object spawBoss latest createdAt
+  const BossDataAaggregatePipe = BossDataAaggregate.map((boss) => {
+    const spawn = boss.spawn.sort((a, b) => {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+    return {
+      ...boss,
+      spawn: spawn[0],
+    };
+  });
+
+  console.log("-------BossDataAaggregatePipe-------");
+  console.log(BossDataAaggregatePipe);
+  console.log("-------BossDataAaggregatePipe-------");
+
+
   // populate "boss" where field type = 0
-  const allSpawnBoss = await spawnBoss.find({}).populate("boss");
+  const allSpawnBoss = await SpawnBoss.find({}).populate("boss");
   // // filter  allSpawnBoss  "boss" match type = 0
   const allSpawnBossType0 = allSpawnBoss.filter((boss) => boss.boss.type === 0);
 
   // ADD BOSSES TO TABLE
-  for (let i = 0; i < allSpawnBossType0.length; i++) {
+  for (let i = 0; i < 5; i++) {
     let name = allSpawnBossType0[i].boss.name;
     let control = allSpawnBossType0[i].guildSpawnControl ? "Oui" : "Non";
     let test = "test";
@@ -105,7 +178,7 @@ async function miniBoss(interaction) {
    +-------------+---------+------------+-----------+-----------------------------+----------------------+--------+
    */
 
- // send message with row of buttons
+  // send message with row of buttons
   await interaction.reply({
     content: "```" + table + "```",
     ephemeral: true,

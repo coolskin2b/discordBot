@@ -102,7 +102,7 @@ async function updateSpawn(spawnBoss, interaction, action) {
       // temps de respawn : date now + boss respawnmini (hours)
       const respawnMini = spawnBoss.boss.respawnMini; // hours
 
-      console.log(respawnMiniDate);
+
 
     // ADD DATE DOC A LIRE :
     //  https://www.mongodb.com/docs/manual/reference/operator/aggregation/dateAdd/
