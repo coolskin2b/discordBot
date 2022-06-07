@@ -123,15 +123,17 @@ async function miniBoss(interaction) {
   ];
 
   const BossDataAaggregate = await Boss.aggregate(aggregation);
-  console.log("-------BossDataAaggregate-------");
-  console.log(BossDataAaggregate);
-  console.log("-------BossDataAaggregate-------");
 
-  // pipeline BossDataAaggregate  spawn  object spawBoss latest createdAt
+
+  // How to sort an object array by date property?
   const BossDataAaggregatePipe = BossDataAaggregate.map((boss) => {
-    const spawn = boss.spawn.sort((a, b) => {
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    });
+    // boss.spawn == array of spawnBoss, sort by createdAt and limit to 1
+    const spawn = boss.spawn
+      .sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      })
+      .slice(0, 1);
+
     return {
       ...boss,
       spawn: spawn[0],
@@ -141,7 +143,6 @@ async function miniBoss(interaction) {
   console.log("-------BossDataAaggregatePipe-------");
   console.log(BossDataAaggregatePipe);
   console.log("-------BossDataAaggregatePipe-------");
-
 
   // populate "boss" where field type = 0
   const allSpawnBoss = await SpawnBoss.find({}).populate("boss");
