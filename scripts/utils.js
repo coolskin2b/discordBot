@@ -35,10 +35,11 @@ async function deleteOldMessage(interaction) {
 function getHoursMinutes(date) {
   const hours = date.getHours();
   const minutes = date.getMinutes();
-  const time = `${hours}:${minutes}`;
-  return time;
+  const stringTime = `${hours < 10 ? `0${hours}` : hours}:${
+    minutes < 10 ? `0${minutes}` : minutes
+  }`;
+  return stringTime;
 }
-
 
 // SPAWN UPDATE BUTTON :
 // CUSTOM ID : bossId-ACTION-
@@ -60,9 +61,17 @@ function buttonActionObjCreator(string) {
   return object;
 }
 
+// function to add hours to a date and retourn object with hours and minutes:
+function addHoursToDate(date, hours) {
+  const newDate = new Date(date);
+  newDate.setHours(newDate.getHours() + hours);
+  const time = getHoursMinutes(newDate);
 
+  return time;
+}
 
 module.exports = {
   deleteOldMessage,
   buttonActionObjCreator,
+  addHoursToDate,
 };

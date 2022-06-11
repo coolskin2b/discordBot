@@ -13,8 +13,17 @@ const {
   MessageEmbed,
 } = require("discord.js");
 
+const {
+  localisation,
+  translate,
+  addSpace,
+  addLine,
+} = require("./localisation");
+
 const { OutlandsBossData } = require("../data/OutlandsBossData");
 const { nanoid } = require("nanoid");
+
+const { addHoursToDate } = require("./utils");
 
 async function miniBoss(interaction) {
   // create row of buttons
@@ -48,9 +57,22 @@ async function miniBoss(interaction) {
     );
 
   let table = `
-   +-------------+---------+------------+-----------+-----------------------------+----------------------+--------+
-   | Nom du Boss | Control | Spawn Mini | Spawn Max |         Last Checked        |        Statut        |   id   |
-   +-------------+---------+------------+-----------+-----------------------------+----------------------+--------+
+   +${addLine(26)}+${addLine(10)}+${addLine(10)}+${addLine(
+    10
+  )}+----------------------+--------+
+   |${addSpace(translate("nomduboss"), 26)}|${addSpace(
+    translate("controle"),
+    10
+  )}|${addSpace(
+    translate("tMini"),
+    8
+  )}|${addSpace(
+    translate("tMax"),
+    7
+  )}|${translate("derniereVerif")}|${translate("statut")}|${translate("id")}|
+   +${addLine(26)}+${addLine(10)}+${addLine(10)}+${addLine(
+    10
+  )}+----------------------+--------+
    `;
 
   // check spwanboss
@@ -100,20 +122,14 @@ async function miniBoss(interaction) {
         name: {
           $first: "$name",
         },
-        control: {
-          $first: "$control",
+        respawnmini: {
+          $first: "$respawnmini",
         },
-        spawnMin: {
-          $first: "$spawnMin",
+        respawnmax: {
+          $first: "$respawnmax",
         },
-        spawnMax: {
-          $first: "$spawnMax",
-        },
-        lastChecked: {
-          $first: "$lastChecked",
-        },
-        status: {
-          $first: "$status",
+        location: {
+          $first: "$location",
         },
         spawn: {
           $push: "$spawn",
@@ -123,7 +139,6 @@ async function miniBoss(interaction) {
   ];
 
   const BossDataAaggregate = await Boss.aggregate(aggregation);
-
 
   // How to sort an object array by date property?
   const BossDataAaggregatePipe = BossDataAaggregate.map((boss) => {
@@ -144,19 +159,42 @@ async function miniBoss(interaction) {
   console.log(BossDataAaggregatePipe);
   console.log("-------BossDataAaggregatePipe-------");
 
-  // populate "boss" where field type = 0
-  const allSpawnBoss = await SpawnBoss.find({}).populate("boss");
-  // // filter  allSpawnBoss  "boss" match type = 0
-  const allSpawnBossType0 = allSpawnBoss.filter((boss) => boss.boss.type === 0);
-
   // ADD BOSSES TO TABLE
-  for (let i = 0; i < 5; i++) {
-    let name = allSpawnBossType0[i].boss.name;
-    let control = allSpawnBossType0[i].guildSpawnControl ? "Oui" : "Non";
-    let test = "test";
-    let readableId = allSpawnBossType0[i].readableId;
+  for (let i = 0; i < BossDataAaggregate.length; i++) {
+    let name = BossDataAaggregate[i].name;
+
+    // get the first object in array BossDataAaggregate[i].spawn
+    let spawnArray = BossDataAaggregate[i].spawn[0];
+
+    const {
+      lastChecked,
+      updatedAt,
+      foundDeadAt,
+      foundAliveAt,
+      readableId,
+      guildSpawnControl,
+      missedSpawnAt,
+      naturalCheck,
+      createdAt,
+    } = spawnArray;
+
+    let control = guildSpawnControl ? "oui" : "non";
+    const test = "test";
+    let Tmin = "";
+    let Tmax = "";
+    if (guildSpawnControl) {
+      Tmin = addHoursToDate(createdAt, BossDataAaggregate[i].respawnmini);
+      Tmax = addHoursToDate(createdAt, BossDataAaggregate[i].respawnmax);
+    } else {
+      Tmin = "N/A";
+      Tmax = "N/A";
+    }
+
     table += `
-    |${name}|   ${control}   |  ${test} heure |  ${test} heure |  ${test} heure Laure |  ${test} heure  |  ${readableId} |
+    ${addSpace(name, 26)}|${addSpace(translate(control), 10)}|${addSpace(
+      Tmin,
+      8
+    )}|${addSpace(Tmax, 7)}|${test} heure Laure|${test}heure|${readableId}|
     `;
   }
 
@@ -179,12 +217,14 @@ async function miniBoss(interaction) {
    +-------------+---------+------------+-----------+-----------------------------+----------------------+--------+
    */
 
+  const allSpawnBoss = await SpawnBoss.find({}).populate("boss");
+  allSpawnBoss.filter((boss) => boss.boss.type === 0);
   // send message with row of buttons
   await interaction.reply({
     content: "```" + table + "```",
     ephemeral: true,
     // embeds: [exampleEmbed],
-    components: create_buttons_boss(allSpawnBossType0),
+    components: create_buttons_boss(allSpawnBoss),
   });
 }
 

@@ -30,6 +30,8 @@ const {
   buttonActionObjCreator,
 } = require("./scripts/utils");
 
+
+
 const {getLastSpawn, getLastSpawnSort, updateSpawn, getSpawnBoss, checkLastSpawnBoss} = require("./scripts/spawn");
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
